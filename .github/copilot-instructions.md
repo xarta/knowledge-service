@@ -35,7 +35,8 @@ knowledge-service/
 │   ├── test_ingestion.py     # Ingestion pipeline unit tests
 │   └── test_query.py         # RAG query unit tests
 ├── tools/
-│   └── check_service.py      # Health check + integration tests
+│   ├── check_service.py      # Health check + integration tests
+│   └── clean_test_data.py    # Orphaned test collection cleanup (LLM-validated)
 ├── Dockerfile
 ├── requirements.txt
 ├── .env.example
@@ -60,6 +61,23 @@ python3 tools/check_service.py
 # Full integration test suite
 python3 tools/check_service.py --all
 ```
+
+## Test Data Cleanup
+
+Integration tests create collections in SeekDB (e.g. `_integration_test`, `_test_ingestion_<timestamp>`). These are normally cleaned up automatically, but crashes or kills can leave orphans.
+
+```bash
+# Scan and report (dry run — no deletions)
+python3 tools/clean_test_data.py
+
+# Scan → LLM validate → interactive delete
+python3 tools/clean_test_data.py --clean
+
+# Non-interactive (still LLM-validated)
+python3 tools/clean_test_data.py --clean --yes
+```
+
+The tool classifies collections by known test patterns, applies heuristics, and optionally consults an LLM for confirmation. Production collections are never touched.
 
 ## Upstream Services
 
